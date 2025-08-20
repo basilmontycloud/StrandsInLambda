@@ -10,5 +10,5 @@ def call_agent(event, context):
     resp = agent("Tell me about agentic AI")
     return {
         'statusCode': 200,
-        'body': json.dumps(resp)
+        'body': json.dumps(resp.message)
     }
