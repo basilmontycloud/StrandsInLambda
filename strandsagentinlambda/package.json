@@ -1,0 +1,18 @@
+{
+  "name": "strandsagentinlambda",
+  "version": "1.0.0",
+  "description": "Example of a Python Flask API service with traditional Serverless Framework",
+  "author": "",
+  "devDependencies": {
+    "serverless-python-requirements": "^6.1.2",
+    "serverless-wsgi": "^3.0.1"
+  },
+  "dependencies": {
+    "serverless-deployment-bucket": "^1.6.0",
+    "serverless-scriptable-plugin": "^1.3.1",
+    "serverless-tag-resources": "^1.2.49"
+  },
+  "scripts": {
+        "install:strands": "mkdir -p layers/strands/python && pip install -r requirements_strands.txt  --platform manylinux2014_aarch64 --only-binary=:all: -t layers/strands/python/ && echo 'strands layer dependencies installed'"
+    }
+}

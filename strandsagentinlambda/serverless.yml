@@ -1,0 +1,88 @@
+service: strandsagentinlambda
+frameworkVersion: '3'
+
+provider:
+  name: aws
+  runtime: python3.12
+  versionFunctions: false
+  stage: ${opt:stage, 'dev1'}
+  region: us-east-1
+  # deploymentBucket: mc-agent-test001-lambdadeployment-bucket
+  environment:
+    STAGE: ${self:provider.stage}
+    LOG_LEVEL: INFO
+  timeout: 30
+  architecture: arm64
+  # vpc:
+  #     ${file(env_config/env_${self:provider.stage}.yml):vpc}
+  stackTags:
+    Domain: Copilot
+    Feature: Copilot
+
+  iam:
+    role:
+      statements:
+        - Effect: "Allow"
+          Action:
+            - "bedrock:*"
+            - "sagemaker:*"
+            - "logs:*"
+            - "s3:GetObject"
+            - "s3:PutObject"
+            - "dynamodb:PutItem"
+            - "ssm:GetParameters"
+            - "ssm:GetParameter"
+            - "lambda:InvokeFunction"
+            - "events:PutEvents"
+            - "bedrock:GetGuardrail"
+            - "bedrock:ListGuardrails"
+            - "bedrock:ApplyGuardrail"
+            - "ecs:*"
+            - "iam:PassRole"
+            - "sts:AssumeRole"
+            - "secretsmanager:GetSecretValue"
+            - "ses:SendEmail"
+            - "aoss:*"
+            - "ec2:CreateNetworkInterface"
+            - "ec2:DescribeNetworkInterfaces"
+            - "ec2:CreateNetworkInterfacePermission"
+            - "ec2:DeleteNetworkInterface"
+          Resource: "*"
+
+functions:
+  call_agent:
+    handler: handler.call_agent
+    layers:
+      - { Ref: PythonRequirementsLambdaLayer }
+      - { Ref: StrandsLambdaLayer }
+
+package:
+  patterns:
+    - '!local_packages/**'
+    - '!node_modules/**'
+    - '!tests/**'
+    - 'handler.py'
+
+layers:
+  strands:
+    name: ${self:service}-${self:provider.stage}-strands
+    path: layers/strands
+    compatibleRuntimes:
+      - python3.11
+    
+  
+  
+plugins:
+  - serverless-python-requirements
+  - serverless-deployment-bucket
+  - serverless-tag-resources
+  - serverless-scriptable-plugin
+
+custom:
+  pythonRequirements:
+    layer: true
+    slim: true
+  scriptable:
+    hooks:
+      before:package:createDeploymentArtifacts: 
+        - npm run install:strands
